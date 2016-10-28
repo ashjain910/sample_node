@@ -1,0 +1,87 @@
+<!doctype html>
+
+<html>
+<head>
+  <title>Sezzle Calc</title>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+
+
+
+</head>
+
+<body>
+<h1 class="text-center">Calculate and Post</h1>
+<input id="text1" class="form-control input-lg" class="text-center" type = 'text' placeholder="Enter an expression here"/><br>
+<h3>Result : </h3><input id="text2" class="form-control input-lg" class="text-center" type = 'text' placeholder="Result"/><br>
+<div class="text-center">
+    <input class="btn btn-primary" id="calculate" type="submit" value="Calculate"/>
+    <input class="btn btn-success" id="post" type="submit" value="Post"/>
+</div>
+<ul id="messages"></ul>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+<script>
+  var socket = io();
+
+    socket.emit('new user', 'hello');
+
+    $("#calculate").click(function(){
+        var val = $("#text1").val();
+        var result = eval(val);
+        $('#text2').val(result);
+
+
+    });
+
+  $('#post').click(function(){
+
+        console.log("posted");
+
+        var val = $("#text1").val();
+        var result = eval(val);
+        $('#text2').val(result);
+
+        var res = {};
+        res['inp'] = val;
+        res['out'] = result;
+
+        var json_result = JSON.stringify(res);
+
+
+      socket.emit('chat message', json_result);
+      $('#m').val('');
+      return false;
+  });
+
+  socket.on('chat message', function(msg){
+    var obj = msg;
+    $('#messages').append($('<li>').text(obj.inp + " = " + obj.out + " (" + obj.user + ")"));
+    if($('#messages li').length == 10) {
+      $('#messages li:first').remove();
+    }
+
+  });
+
+  socket.on('new_feed', function(msg){
+
+    $.each(msg, function(t1,t2) {
+      var obj = jQuery.parseJSON( t2 );
+      $('#messages').append($('<li>').text(obj.inp + " = " + obj.out + " (" + obj.user + ")"));
+    });
+
+  });
+
+</script>
+
+
+</body>
+</html>
